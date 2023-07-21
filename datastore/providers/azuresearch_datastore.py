@@ -53,7 +53,7 @@ class AzureSearchDataStore(DataStore):
             credential=AzureSearchDataStore._create_credentials(False),
             user_agent="retrievalplugin"
         )
-        if AZURESEARCH_INDEX not in [name for name in mgmt_client.list_index_names()]:
+        if AZURESEARCH_INDEX not in list(mgmt_client.list_index_names()):
             self._create_index(mgmt_client)
         else:
             logger.info(f"Using existing index {AZURESEARCH_INDEX} in service {AZURESEARCH_SERVICE}")
@@ -102,17 +102,21 @@ class AzureSearchDataStore(DataStore):
                 search_result = await self.client.search(None, filter=filter, top=MAX_DELETE_BATCH_SIZE, include_total_count=True, select=FIELDS_ID)
                 if await search_result.get_count() == 0:
                     break
-                documents = [{ FIELDS_ID: d[FIELDS_ID] } async for d in search_result if d[FIELDS_ID] not in deleted]
-                if len(documents) > 0:
+                if documents := [
+                    {FIELDS_ID: d[FIELDS_ID]}
+                    async for d in search_result
+                    if d[FIELDS_ID] not in deleted
+                ]:
                     logger.info(f"Deleting {len(documents)} chunks " + ("using a filter" if filter is not None else "using delete_all"))
                     del_result = await self.client.delete_documents(documents=documents)
-                    if not all([rr.succeeded for rr in del_result]):
+                    if all(rr.succeeded for rr in del_result):
+                        deleted.update([d[FIELDS_ID] for d in documents])
+                    else:
                         raise Exception("Failed to delete documents")
-                    deleted.update([d[FIELDS_ID] for d in documents])
                 else:
                     # All repeats, delay a bit to let the index refresh and try again
                     time.sleep(0.25)
-        
+
         if ids is not None and len(ids) > 0:
             for id in ids:
                 logger.info(f"Deleting chunks for document id {id}")
@@ -172,14 +176,14 @@ class AzureSearchDataStore(DataStore):
         except Exception as e:
             raise Exception(f"Error querying the index: {e}")
 
-    @staticmethod    
+    @staticmethod
     def _translate_filter(filter: DocumentMetadataFilter) -> str:
         """
         Translates a DocumentMetadataFilter into an Azure Search filter string
         """
         if filter is None:
             return None        
-        
+
         escape = lambda s: s.replace("'", "''")
 
         # regex to validate dates are in OData format
@@ -202,7 +206,7 @@ class AzureSearchDataStore(DataStore):
             if not date_re.match(filter.end_date):
                 raise ValueError(f"end_date must be in OData format, got {filter.end_date}")
             filter_list.append(f"{FIELDS_CREATED_AT} le {filter.end_date}")
-        return " and ".join(filter_list) if len(filter_list) > 0 else None
+        return " and ".join(filter_list) if filter_list else None
     
     def _create_index(self, mgmt_client: SearchIndexClient):
         """
@@ -253,8 +257,7 @@ class AzureSearchDataStore(DataStore):
     def _create_credentials(use_async: bool) -> Union[AzureKeyCredential, DefaultAzureCredential, DefaultAzureCredentialSync]:
         if AZURESEARCH_API_KEY is None:
             logger.info("Using DefaultAzureCredential for Azure Search, make sure local identity or managed identity are set up appropriately")
-            credential = DefaultAzureCredential() if use_async else DefaultAzureCredentialSync()
+            return DefaultAzureCredential() if use_async else DefaultAzureCredentialSync()
         else:
             logger.info("Using an API key to authenticate with Azure Search")
-            credential = AzureKeyCredential(AZURESEARCH_API_KEY)
-        return credential
+            return AzureKeyCredential(AZURESEARCH_API_KEY)

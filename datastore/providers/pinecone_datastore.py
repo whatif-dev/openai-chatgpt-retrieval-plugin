@@ -100,7 +100,7 @@ class PineconeDataStore(DataStore):
             try:
                 logger.info(f"Upserting batch of size {len(batch)}")
                 self.index.upsert(vectors=batch)
-                logger.info(f"Upserted batch successfully")
+                logger.info("Upserted batch successfully")
             except Exception as e:
                 logger.error(f"Error upserting batch: {e}")
                 raise e
@@ -185,9 +185,9 @@ class PineconeDataStore(DataStore):
         # Delete all vectors from the index if delete_all is True
         if delete_all:
             try:
-                logger.info(f"Deleting all vectors from index")
+                logger.info("Deleting all vectors from index")
                 self.index.delete(delete_all=True)
-                logger.info(f"Deleted all vectors successfully")
+                logger.info("Deleted all vectors successfully")
                 return True
             except Exception as e:
                 logger.error(f"Error deleting all vectors: {e}")
@@ -200,7 +200,7 @@ class PineconeDataStore(DataStore):
             try:
                 logger.info(f"Deleting vectors with filter {pinecone_filter}")
                 self.index.delete(filter=pinecone_filter)
-                logger.info(f"Deleted vectors with filter successfully")
+                logger.info("Deleted vectors with filter successfully")
             except Exception as e:
                 logger.error(f"Error deleting vectors with filter: {e}")
                 raise e
@@ -211,7 +211,7 @@ class PineconeDataStore(DataStore):
                 logger.info(f"Deleting vectors with ids {ids}")
                 pinecone_filter = {"document_id": {"$in": ids}}
                 self.index.delete(filter=pinecone_filter)  # type: ignore
-                logger.info(f"Deleted vectors with ids successfully")
+                logger.info("Deleted vectors with ids successfully")
             except Exception as e:
                 logger.error(f"Error deleting vectors with ids: {e}")
                 raise e
@@ -248,15 +248,8 @@ class PineconeDataStore(DataStore):
         if metadata is None:
             return {}
 
-        pinecone_metadata = {}
-
-        # For each field in the Metadata, check if it has a value and add it to the pinecone metadata dict
-        # For fields that are dates, convert them to unix timestamps
-        for field, value in metadata.dict().items():
-            if value is not None:
-                if field in ["created_at"]:
-                    pinecone_metadata[field] = to_unix_timestamp(value)
-                else:
-                    pinecone_metadata[field] = value
-
-        return pinecone_metadata
+        return {
+            field: to_unix_timestamp(value) if field in ["created_at"] else value
+            for field, value in metadata.dict().items()
+            if value is not None
+        }

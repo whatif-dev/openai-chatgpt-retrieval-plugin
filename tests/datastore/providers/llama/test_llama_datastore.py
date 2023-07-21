@@ -28,7 +28,7 @@ def initial_document_chunks() -> Dict[str, List[DocumentChunk]]:
 
 @pytest.fixture
 def queries() -> List[QueryWithEmbedding]:
-    queries = [
+    return [
         QueryWithEmbedding(
             query='Query 1',
             top_k=1,
@@ -40,7 +40,6 @@ def queries() -> List[QueryWithEmbedding]:
             embedding=create_embedding(5, 5),
         ),
     ]
-    return queries
 
 
 @pytest.fixture
@@ -54,7 +53,7 @@ async def test_upsert(
 ) -> None:
     """Test basic upsert."""
     doc_ids = await llama_datastore._upsert(initial_document_chunks)
-    assert doc_ids == [doc_id for doc_id in initial_document_chunks]
+    assert doc_ids == list(initial_document_chunks)
 
 
 @pytest.mark.asyncio

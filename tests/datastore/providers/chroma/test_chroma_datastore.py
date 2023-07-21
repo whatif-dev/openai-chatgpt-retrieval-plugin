@@ -202,10 +202,8 @@ async def test_query_filter_by_id(document_chunks):
             # Assert that all document chunks are returned
             assert len(query_results[0].results) == len(chunks)
             assert all(
-                [
-                    result.id in [chunk.id for chunk in chunks]
-                    for result in query_results[0].results
-                ]
+                result.id in [chunk.id for chunk in chunks]
+                for result in query_results[0].results
             )
 
 
@@ -231,10 +229,8 @@ async def test_query_filter_by_date(document_chunks):
         # Assert that only the first document is returned
         assert len(query_results[0].results) == len(document_chunks["first-doc"])
         assert all(
-            [
-                result.id in [chunk.id for chunk in document_chunks["first-doc"]]
-                for result in query_results[0].results
-            ]
+            result.id in [chunk.id for chunk in document_chunks["first-doc"]]
+            for result in query_results[0].results
         )
 
         # Filter for the entire date span
@@ -254,12 +250,10 @@ async def test_query_filter_by_date(document_chunks):
             document_chunks["second-doc"]
         )
         assert all(
-            [
-                result.id
-                in [chunk.id for chunk in document_chunks["first-doc"]]
-                + [chunk.id for chunk in document_chunks["second-doc"]]
-                for result in query_results[0].results
-            ]
+            result.id
+            in [chunk.id for chunk in document_chunks["first-doc"]]
+            + [chunk.id for chunk in document_chunks["second-doc"]]
+            for result in query_results[0].results
         )
 
 
@@ -286,8 +280,6 @@ async def test_delete_by_id(document_chunks):
         assert len(query_results[0].results) == len(document_chunks["second-doc"])
 
         assert all(
-            [
-                result.id in [chunk.id for chunk in document_chunks["second-doc"]]
-                for result in query_results[0].results
-            ]
+            result.id in [chunk.id for chunk in document_chunks["second-doc"]]
+            for result in query_results[0].results
         )

@@ -136,19 +136,16 @@ class LlamaDataStore(DataStore):
             query_bundle = _query_with_embedding_to_query_bundle(query)
 
             # Setup query kwargs
-            if self._query_kwargs is not None:
-                query_kwargs = self._query_kwargs
-            else:
-                query_kwargs = {}
+            query_kwargs = self._query_kwargs if self._query_kwargs is not None else {}
             # TODO: support top_k for other indices
             if isinstance(self._index, GPTVectorStoreIndex):
                 query_kwargs['similarity_top_k'] = query.top_k
 
             response = await self._index.aquery(query_bundle, response_mode=RESPONSE_MODE, **query_kwargs)
-            
+
             query_result = _response_to_query_result(response, query)
             query_result_all.append(query_result)
-        
+
         return query_result_all
 
     async def delete(

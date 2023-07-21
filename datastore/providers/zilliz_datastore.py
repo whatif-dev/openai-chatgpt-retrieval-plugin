@@ -12,11 +12,11 @@ from datastore.providers.milvus_datastore import (
 )
 
 
-ZILLIZ_COLLECTION = os.environ.get("ZILLIZ_COLLECTION") or "c" + uuid4().hex
+ZILLIZ_COLLECTION = os.environ.get("ZILLIZ_COLLECTION") or f"c{uuid4().hex}"
 ZILLIZ_URI = os.environ.get("ZILLIZ_URI")
 ZILLIZ_USER = os.environ.get("ZILLIZ_USER")
 ZILLIZ_PASSWORD = os.environ.get("ZILLIZ_PASSWORD")
-ZILLIZ_USE_SECURITY = False if ZILLIZ_PASSWORD is None else True
+ZILLIZ_USE_SECURITY = ZILLIZ_PASSWORD is not None
 
 ZILLIZ_CONSISTENCY_LEVEL = os.environ.get("ZILLIZ_CONSISTENCY_LEVEL")
 
@@ -60,6 +60,6 @@ class ZillizDataStore(MilvusDataStore):
             self.col.load()
             self.search_params = {"metric_type": "IP", "params": {}}
         except Exception as e:
-            logger.error("Failed to create index, error: {}".format(e))
+            logger.error(f"Failed to create index, error: {e}")
 
 

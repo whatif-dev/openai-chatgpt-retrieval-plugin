@@ -62,9 +62,7 @@ async def process_jsonl_dump(
 
             # screen for pii if requested
             if screen_for_pii:
-                pii_detected = screen_text_for_pii(text)
-                # if pii detected, print a warning and skip the document
-                if pii_detected:
+                if pii_detected := screen_text_for_pii(text):
                     logger.info("PII detected in document, skipping")
                     skipped_items.append(item)  # add the skipped item to the list
                     continue

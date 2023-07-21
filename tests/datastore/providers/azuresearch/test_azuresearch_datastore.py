@@ -7,7 +7,7 @@ from models.models import DocumentMetadataFilter, Query, Source, Document, Docum
 
 AZURESEARCH_TEST_INDEX = "testindex"
 os.environ["AZURESEARCH_INDEX"] = AZURESEARCH_TEST_INDEX
-if os.environ.get("AZURESEARCH_SERVICE") == None:
+if os.environ.get("AZURESEARCH_SERVICE") is None:
     os.environ["AZURESEARCH_SERVICE"] = "invalid service name" # Will fail anyway if not set to a real service, but allows tests to be discovered
 
 import datastore.providers.azuresearch_datastore
@@ -22,9 +22,10 @@ def azuresearch_mgmt_client():
     )    
 
 def test_translate_filter():
-    assert AzureSearchDataStore._translate_filter(
-        DocumentMetadataFilter()
-    ) == None
+    assert (
+        AzureSearchDataStore._translate_filter(DocumentMetadataFilter())
+        is None
+    )
 
     for field in ["document_id", "source", "source_id", "author"]:
         value = Source.file if field == "source" else f"test_{field}"
@@ -54,7 +55,7 @@ def test_translate_filter():
         assert AzureSearchDataStore._translate_filter(
             DocumentMetadataFilter(end_date="2023-01-01")
         )
-    
+
     assert AzureSearchDataStore._translate_filter(
         DocumentMetadataFilter(start_date="2023-01-01T00:00:00Z", end_date="2023-01-02T00:00:00Z", document_id = "test_document_id")
     ) == "document_id eq 'test_document_id' and created_at ge 2023-01-01T00:00:00Z and created_at le 2023-01-02T00:00:00Z"

@@ -137,14 +137,13 @@ class WeaviateDataStore(DataStore):
     def _build_auth_credentials():
         url = os.environ.get("WEAVIATE_URL", WEAVIATE_URL_DEFAULT)
 
-        if WeaviateDataStore._is_wcs_domain(url):
-            api_key = os.environ.get("WEAVIATE_API_KEY")
-            if api_key is not None:
-                return weaviate.auth.AuthApiKey(api_key=api_key)
-            else:
-                raise ValueError("WEAVIATE_API_KEY environment variable is not set")
-        else:
+        if not WeaviateDataStore._is_wcs_domain(url):
             return None
+        api_key = os.environ.get("WEAVIATE_API_KEY")
+        if api_key is not None:
+            return weaviate.auth.AuthApiKey(api_key=api_key)
+        else:
+            raise ValueError("WEAVIATE_API_KEY environment variable is not set")
 
     async def _upsert(self, chunks: Dict[str, List[DocumentChunk]]) -> List[str]:
         """
@@ -339,7 +338,7 @@ class WeaviateDataStore(DataStore):
                 operand = {
                     "path": [
                         attr
-                        if not (attr == "start_date" or attr == "end_date")
+                        if attr not in ["start_date", "end_date"]
                         else "created_at"
                     ],
                     "operator": filter_condition["operator"],
@@ -363,10 +362,7 @@ class WeaviateDataStore(DataStore):
 
         try:
             result = uuid.UUID(candidate_id)
-            if result.version not in acceptable_version:
-                return False
-            else:
-                return True
+            return result.version in acceptable_version
         except ValueError:
             return False
 

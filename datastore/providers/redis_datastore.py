@@ -348,9 +348,9 @@ class RedisDataStore(DataStore):
         # Delete all vectors from the index if delete_all is True
         if delete_all:
             try:
-                logger.info(f"Deleting all documents from index")
+                logger.info("Deleting all documents from index")
                 await self.client.ft(REDIS_INDEX_NAME).dropindex(True)
-                logger.info(f"Deleted all documents successfully")
+                logger.info("Deleted all documents successfully")
                 return True
             except Exception as e:
                 logger.error(f"Error deleting all documents: {e}")
